@@ -137,6 +137,66 @@ void ScreenshotDialog::onButtonClicked(QAbstractButton* clicked)
     close();
   }
 }
+#include <unistd.h>
+void ScreenshotDialog::save_blackscreen_render_panel(int &out_r, int &out_g, int &out_b)
+{
+//    QString default_save_file = default_save_dir_ + "/rviz_screenshot_" +
+//                                QDateTime::currentDateTime().toString("yyyy_MM_dd-hh_mm_ss") + ".png";
+//    QString filename = QFileDialog::getSaveFileName(this, "Save image", default_save_file);
+    QString filename="/tmp/rdv_rviz_check_blackscreen.png";
+    setSaveFullWindow(false);
+    takeScreenshotNow();
+    if (filename != "")
+    {
+      QString with_slashes = QDir::fromNativeSeparators(filename);
+      QString file_part = with_slashes.section('/', -1);
+      default_save_dir_ = QDir::toNativeSeparators(with_slashes.section('/', 0, -2));
+      Q_EMIT savedInDirectory(default_save_dir_);
+
+      // If filename has no dot, like "image" or has a dot in the zeroth
+      // position, like ".image", add ".png" to give a default file
+      // format.
+      if (file_part.lastIndexOf(".") <= 0)
+      {
+        filename += ".png";
+      }
+      QImageWriter writer(filename);
+      if (writer.write(screenshot_.toImage()))
+      {
+        close();
+        QImage rdv_inspection_pixmap = screenshot_.copy(0,0,1,0).toImage();
+        QColor col = rdv_inspection_pixmap.pixelColor(0,0);
+        out_r = col.red();
+        out_g = col.green();
+        out_b = col.blue();
+        fprintf(stderr,"%d, %d, %d\n",out_r, out_g,out_b);
+      }
+      else
+      {
+        QString error_message;
+        if (writer.error() == QImageWriter::UnsupportedFormatError)
+        {
+          QString suffix = filename.section('.', -1);
+          QString formats_string;
+          QList<QByteArray> formats = QImageWriter::supportedImageFormats();
+          formats_string = formats[0];
+          for (int i = 1; i < formats.size(); i++)
+          {
+            formats_string += ", " + formats[i];
+          }
+
+          error_message = "File type '" + suffix + "' is not supported.\n" +
+                          "Supported image formats are: " + formats_string + "\n";
+        }
+        else
+        {
+          error_message = "Failed to write image to file " + filename;
+        }
+
+        QMessageBox::critical(this, "Error", error_message);
+      }
+    }
+}
 
 void ScreenshotDialog::save()
 {

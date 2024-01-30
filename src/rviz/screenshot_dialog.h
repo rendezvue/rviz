@@ -86,6 +86,8 @@ private:
   QSize saved_size_;
   bool first_time_;
   QString default_save_dir_;
+public:
+  void save_blackscreen_render_panel(int &out_r, int &out_g, int &out_b);
 };
 
 } // namespace rviz

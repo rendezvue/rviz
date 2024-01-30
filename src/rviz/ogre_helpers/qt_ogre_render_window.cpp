@@ -292,6 +292,9 @@ void QtOgreRenderWindow::setPostRenderCallback(boost::function<void()> func)
 }
 
 //------------------------------------------------------------------------------
+
+extern bool ext_rdv_check_opengl_update;
+
 void QtOgreRenderWindow::paintEvent(QPaintEvent* /*e*/)
 {
   if (auto_render_ && render_window_)
@@ -317,6 +320,15 @@ void QtOgreRenderWindow::paintEvent(QPaintEvent* /*e*/)
       post_render_callback_();
     }
   }
+  
+  // fprintf(stderr,"==================%s:%d\n",__func__,__LINE__);
+  ext_rdv_check_opengl_update = true;
+
+#if 0
+  Ogre::PixelBox rdv_pixelbox(4000, 4000, 32, Ogre::PixelFormat::PF_R8G8B8A8);
+  render_window_->copyContentsToMemory(rdv_pixelbox);
+#endif  
+
 }
 
 //------------------------------------------------------------------------------

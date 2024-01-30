@@ -11,6 +11,9 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_PREFIX_PATH "/opt/ros/melodic")
+set(qt_build_DIR "/opt/ros/melodic/share/qt_build/cmake")
+set(roscpp_DIR "/opt/ros/melodic/share/roscpp/cmake")
 
 # Define global caktin_lint suppressions
 #catkin_lint: ignore uninstalled_script missing_install_target

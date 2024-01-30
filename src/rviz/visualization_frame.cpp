@@ -50,7 +50,7 @@
 #include <QToolButton>
 #include <QHBoxLayout>
 #include <QTabBar>
-
+#include <QThread>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/bind.hpp>
@@ -183,6 +183,12 @@ void VisualizationFrame::setStatus(const QString& message)
   Q_EMIT statusUpdate(message);
 }
 
+
+bool ext_rdv_check_opengl_update = false;
+bool rdv_black_screen_inspection_complete = false;
+int rdv_black_screen_inspection_count = 0;
+int rdv_black_screen_inspection_success_count = 0;
+
 void VisualizationFrame::updateFps()
 {
   frame_count_++;
@@ -196,6 +202,39 @@ void VisualizationFrame::updateFps()
     if (original_status_bar_ == statusBar())
     {
       fps_label_->setText(QString::number(int(fps)) + QString(" fps"));
+    }
+  }
+  // fprintf(stderr,"%s:%d\n",__func__,__LINE__);
+  
+  if( !rdv_black_screen_inspection_complete )
+  {
+    if( ext_rdv_check_opengl_update )    
+    {
+      if( rdv_black_screen_inspection_count++ < 10)
+      {
+        ScreenshotDialog* screenshot_dialog =
+        new ScreenshotDialog(this, render_panel_, QString::fromStdString("/tmp/"));
+        
+        int out_r, out_g, out_b;
+        screenshot_dialog->save_blackscreen_render_panel(out_r, out_g, out_b);        
+        if( !(out_r == 0 && out_g == 0 && out_b == 0) )
+        { 
+          rdv_black_screen_inspection_success_count++;          
+        }
+      }
+      else
+      {
+        rdv_black_screen_inspection_complete = true;
+        if( rdv_black_screen_inspection_success_count > 3)
+        {
+          fprintf(stderr,"RDV OPENGL BLACKSCREEN INSPECTION SUCCESS !\n");
+        }
+        else
+        {
+          fprintf(stderr,"RDV OPENGL BLACKSCREEN INSPECTION FAIL !\n");
+          exit(1);
+        }
+      }      
     }
   }
 }
